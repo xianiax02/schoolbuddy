@@ -1,0 +1,9 @@
+boto3
+psycopg2-binary
+streamlit
+python-dotenv
+langchain
+langchain-aws
+langchain-core
+pypdf
+tiktoken
