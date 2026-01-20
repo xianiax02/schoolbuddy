@@ -5,19 +5,23 @@ import json
 import boto3
 import psycopg2
 import streamlit as st
+import google.generativeai as genai
 from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
 
-# LangChain 및 AWS 연동
-from langchain_aws import ChatBedrock, BedrockEmbeddings
-from langchain_core.messages import HumanMessage
+# LangChain 및 AWS Bedrock 연동
+from langchain_aws import BedrockEmbeddings
 
-# 환경 변수 로드
 load_dotenv()
 
-# --- [1] 인프라 및 서비스 초기화 ---
+# --- [1] 서비스 초기화 ---
+GENAI_API_KEY = "AIzaSyDb5XkJtwn9fsmMdY5CVeX76ke0wUh5cUc"
+genai.configure(api_key=GENAI_API_KEY)
+MODEL_NAME = 'models/gemini-2.5-flash'
+
 @st.cache_resource
-def init_aws():
+def init_resources():
     region = "us-west-2" 
     bedrock = boto3.client("bedrock-runtime", region_name=region)
     s3 = boto3.client('s3', region_name=region)
@@ -26,201 +30,181 @@ def init_aws():
 def get_db_conn():
     try:
         return psycopg2.connect(
-            host=os.getenv('DB_HOST'),
+            host=os.getenv('DB_HOST'), 
             database=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USER'),
+            user=os.getenv('DB_USER'), 
             password=os.getenv('DB_PASSWORD'),
-            port='5432', connect_timeout=3
+            port='5432', 
+            connect_timeout=5
         )
-    except: return None
+    except Exception as e:
+        st.error(f"DB 연결 실패: {e}")
+        return None
 
-def find_relevant_docs(query, bedrock_client):
-    embeddings = BedrockEmbeddings(client=bedrock_client, model_id="amazon.titan-embed-text-v1", region_name="us-west-2")
+bedrock, s3 = init_resources()
+
+# --- [2] 실시간 번역 ---
+@st.cache_data(show_spinner=False, ttl=3600)
+def translate_content(raw_json_str, target_lang):
+    if target_lang == "한국어 (Korean)":
+        return json.loads(raw_json_str)
+    
+    model = genai.GenerativeModel(MODEL_NAME)
+    prompt = f"Translate this school notice JSON into {target_lang}. Respond ONLY with JSON. Data: {raw_json_str}"
     try:
-        q_vector = embeddings.embed_query(query)
-        conn = get_db_conn()
-        if not conn: return []
-        cur = conn.cursor()
-        cur.execute("SELECT content FROM documents ORDER BY embedding <=> %s::vector LIMIT 3", (q_vector,))
-        rows = cur.fetchall()
-        cur.close(); conn.close()
-        return [r[0] for r in rows]
-    except: return []
+        response = model.generate_content(prompt)
+        res_text = response.text
+        json_str = res_text[res_text.find('{'):res_text.rfind('}')+1]
+        return json.loads(json_str)
+    except:
+        return json.loads(raw_json_str)
 
-# --- [2] UI/UX 설정 (가독성 개선 적용) ---
+# --- [3] UI/UX 설정 ---
 st.set_page_config(page_title="School Buddy", page_icon="🎒", layout="wide")
+
+if 'language' not in st.session_state:
+    st.session_state.language = '한국어 (Korean)'
+
+lang_pack = {
+    "한국어 (Korean)": {"title": "🏠 학교 소식 대시보드", "date": "날짜", "sidebar_upload": "새 공지 등록", "upload_label": "PDF/이미지 선택", "chat_placeholder": "학교 생활에 대해 물어보세요...", "btn_analyze": "🚀 분석 및 DB 저장"},
+    "English": {"title": "🏠 School Dashboard", "date": "Date", "sidebar_upload": "Upload Notice", "upload_label": "Select PDF/Image", "chat_placeholder": "Ask about school life...", "btn_analyze": "🚀 Analyze & Save"},
+    "Tiếng Việt": {"title": "🏠 Bảng tin nhà trường", "date": "Ngày", "sidebar_upload": "Đăng ký thông báo", "upload_label": "Chọn PDF/Hình ảnh", "chat_placeholder": "Hỏi về cuộc sống học đường...", "btn_analyze": "🚀 Phân tích & Lưu"},
+    "中文": {"title": "🏠 学校仪表板", "date": "日期", "sidebar_upload": "注册通知", "upload_label": "选择 PDF/图像", "chat_placeholder": "询问学校生活...", "btn_analyze": "🚀 분석 및 DB 저장"}
+}
+curr_lang = lang_pack.get(st.session_state.language, lang_pack["한국어 (Korean)"])
 
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
-html, body, [class*="css"] { font-family: 'Noto Sans KR', sans-serif !important; }
-
-/* Sidebar - Orange Gradient */
-[data-testid="stSidebar"] { background: linear-gradient(180deg, #FF9800 0%, #F57C00 100%) !important; }
-[data-testid="stSidebar"] * { color: white !important; }
-
-/* Dashboard Cards - 가독성 강화 수정 */
-.notice-card { 
-    background-color: #FFFFFF !important; 
-    border-radius: 16px; 
-    padding: 1.5rem; 
-    margin-bottom: 1.2rem; 
-    border-left: 8px solid #FF9800; /* 포인트를 더 두껍게 */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* 그림자 강조로 영역 구분 */
-}
-
-/* 제목: 아주 진한 검은색 */
-.notice-card h4 { 
-    color: #111111; 
-    margin-top: 0; 
-    margin-bottom: 10px;
-    font-size: 1.25rem;
-    font-weight: 800; 
-}
-
-/* 본문 요약: 진한 회색 */
-.notice-card p { 
-    color: #333333 !important; 
-    line-height: 1.6; 
-    font-size: 1rem;
-    margin-bottom: 15px;
-}
-
-/* 하단 날짜 및 준비물: 명확한 대비 */
-.notice-info { 
-    display: flex; 
-    gap: 20px; 
-    border-top: 1px solid #EEEEEE; 
-    padding-top: 10px;
-    color: #444444 !important; 
-    font-size: 0.9rem; 
-}
-.notice-info b { color: #000000 !important; }
-
-/* Status Monitor */
-.mcp-monitor { background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border-radius: 16px; padding: 1.2rem; display: flex; align-items: center; gap: 1rem; border: 1px solid #A5D6A7; margin-bottom: 1.5rem; }
-.mcp-monitor .status { margin-left: auto; background: #2E7D32; color: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; }
-
-/* Chat Bubbles */
-.chat-bubble { padding: 1rem; border-radius: 18px; margin-bottom: 0.5rem; max-width: 80%; line-height: 1.6; }
-.user-bubble { background: #FF9800; color: white; margin-left: auto; border-radius: 18px 18px 4px 18px; }
-.assistant-bubble { background: white; color: #333; border: 1px solid #EEE; border-radius: 18px 18px 18px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+html, body, [class*="css"] { font-family: 'Noto Sans KR', sans-serif !important; background-color: #0E1117 !important; color: #E0E0E0 !important; }
+[data-testid="stSidebar"] { background-color: #161B22 !important; border-right: 1px solid #30363D !important; }
+.notice-card { background-color: #1D1D1F !important; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.2rem; border-left: 5px solid #FF9800; }
 </style>
 """, unsafe_allow_html=True)
 
-bedrock, s3 = init_aws()
 if 'messages' not in st.session_state: st.session_state.messages = []
 if 'current_page' not in st.session_state: st.session_state.current_page = 'dashboard'
-if 'language' not in st.session_state: st.session_state.language = '한국어 (Korean)'
 
-# --- [3] 사이드바 내비게이션 및 업로드 ---
+# --- [4] 사이드바: 인제션 (S3 + RDS Vector DB) ---
 with st.sidebar:
-    st.markdown("<div style='text-align: center;'><h1>🎒</h1><h2>School Buddy</h2><p>다문화가정 지능형 비서</p></div>", unsafe_allow_html=True)
-    st.session_state.language = st.selectbox("🌐 Language / 언어", ["한국어 (Korean)", "English", "Tiếng Việt", "中文"])
+    st.markdown("<div style='text-align: center;'><h1>🎒</h1><h2>School Buddy</h2></div>", unsafe_allow_html=True)
+    selected_lang = st.selectbox("🌐 Language", options=list(lang_pack.keys()), index=list(lang_pack.keys()).index(st.session_state.language))
+    if selected_lang != st.session_state.language:
+        st.session_state.language = selected_lang
+        st.rerun()
     
     st.markdown("---")
-    if st.button("🏠 대시보드", use_container_width=True): st.session_state.current_page = 'dashboard'
-    if st.button("💬 AI 도우미", use_container_width=True): st.session_state.current_page = 'chat'
-    if st.button("📖 용어사전", use_container_width=True): st.session_state.current_page = 'dictionary'
+    if st.button("🏠 Dashboard", use_container_width=True): st.session_state.current_page = 'dashboard'
+    if st.button("💬 AI Chat", use_container_width=True): st.session_state.current_page = 'chat'
     
     st.markdown("---")
-    st.markdown("### 📄 새로운 통신문 등록")
-    uploaded_file = st.file_uploader("PDF 파일을 올려주세요", type=['pdf'], label_visibility="collapsed")
+    st.markdown(f"### 📄 {curr_lang['sidebar_upload']}")
+    uploaded_file = st.file_uploader(curr_lang['upload_label'], type=['pdf', 'jpg', 'png', 'jpeg'], label_visibility="collapsed")
     
-    if st.button("🚀 분석 및 저장", use_container_width=True):
+    if st.button(curr_lang['btn_analyze'], use_container_width=True, type="primary"):
         if uploaded_file:
-            with st.spinner("AI가 통신문을 분석 중입니다..."):
+            with st.spinner("AI 분석 및 벡터 저장 중..."):
                 file_bytes = uploaded_file.getvalue()
                 file_name = uploaded_file.name
                 s3.put_object(Bucket=os.getenv('BUCKET_NAME'), Key=f"raw/{file_name}", Body=file_bytes)
                 
                 try:
-                    import pypdf
-                    pdf_reader = pypdf.PdfReader(io.BytesIO(file_bytes))
-                    full_text = "".join([p.extract_text() for p in pdf_reader.pages])
-
-                    llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-haiku-20240307-v1:0")
-                    summary_prompt = f"다음 통신문을 분석하여 반드시 JSON으로만 답하세요. 필드: title, summary(2문장), details(date, items:[])\n\n내용: {full_text[:3000]}"
-                    response = llm.invoke([HumanMessage(content=summary_prompt)])
+                    model = genai.GenerativeModel(MODEL_NAME)
+                    prompt = "Analyze this school notice. Respond in JSON ONLY. Fields: title, summary(2 sentences), details:{date: 'YYYY-MM-DD'}"
                     
-                    res_content = response.content
-                    json_str = res_content[res_content.find('{'):res_content.rfind('}')+1]
+                    if file_name.lower().endswith(('pdf')):
+                        import pypdf
+                        pdf_reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+                        full_text = "".join([p.extract_text() for p in pdf_reader.pages])
+                        response = model.generate_content(f"{prompt}\n\nContent: {full_text[:5000]}")
+                    else:
+                        img_data = {'mime_type': 'image/jpeg', 'data': file_bytes}
+                        response = model.generate_content([prompt, img_data])
+                    
+                    json_str = response.text[response.text.find('{'):response.text.rfind('}')+1]
                     s3.put_object(Bucket=os.getenv('BUCKET_NAME'), Key=f"analysis/{file_name}.json", Body=json_str)
                     
-                    st.success("분석 완료!")
-                    time.sleep(1)
+                    # 벡터 임베딩 생성 (Bedrock Titan)
+                    analysis_data = json.loads(json_str)
+                    # 검색 정확도를 높이기 위해 제목과 요약을 합쳐서 벡터화 
+                    text_to_embed = f"공지 제목: {analysis_data.get('title')}\n요약: {analysis_data.get('summary')}"
+                    embeddings_model = BedrockEmbeddings(client=bedrock, model_id="amazon.titan-embed-text-v1")
+                    vector = embeddings_model.embed_query(text_to_embed)
+                    
+                    # RDS에 벡터 데이터 저장
+                    conn = get_db_conn()
+                    if conn:
+                        cur = conn.cursor()
+                        cur.execute(
+                            "INSERT INTO documents (content, embedding, metadata) VALUES (%s, %s, %s)",
+                            (text_to_embed, vector, json.dumps({"source": file_name, "date": analysis_data.get('details', {}).get('date')}))
+                        )
+                        conn.commit()
+                        cur.close(); conn.close()
+                    
+                    st.success("✅ RAG 지식 베이스 등록 완료!")
                     st.rerun()
-                except Exception as e:
-                    st.error(f"오류 발생: {e}")
+                except Exception as e: st.error(f"Error: {e}")
 
-# --- [4] 메인 화면: 대시보드 (긴급 로직 제거 및 디자인 수정) ---
+# --- [5] 대시보드 ---
 if st.session_state.current_page == 'dashboard':
-    st.title("🏠 학교 소식 대시보드")
-    
-    st.markdown("""
-    <div class="mcp-monitor">
-        <div style="font-size: 2rem;">🔍</div>
-        <div>
-            <h3 style="margin:0; color: #2E7D32;">AI 가정통신문 분석</h3>
-            <p style="margin:0; color: #558B2F;">최근 등록된 소식들을 확인하세요.</p>
-        </div>
-        <div class="status">● 작동중</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.subheader("📬 최근 소식")
+    st.title(curr_lang["title"])
     try:
         response = s3.list_objects_v2(Bucket=os.getenv('BUCKET_NAME'), Prefix='analysis/')
         if 'Contents' in response:
-            sorted_files = sorted(response['Contents'], key=lambda x: x['LastModified'], reverse=True)
-            for obj in sorted_files[:3]:
+            sorted_files = sorted([f for f in response['Contents'] if f['Key'] != 'analysis/'], key=lambda x: x['LastModified'], reverse=True)
+            for obj in sorted_files[:5]:
                 file_obj = s3.get_object(Bucket=os.getenv('BUCKET_NAME'), Key=obj['Key'])
-                data = json.loads(file_obj['Body'].read().decode('utf-8'))
-                
-                # [수정] 긴급 로직 제거 및 진한 텍스트 컬러 적용
-                st.markdown(f"""
-                <div class="notice-card">
-                    <h4>📄 {data.get('title')}</h4>
-                    <p>{data.get('summary')}</p>
-                    <div class="notice-info">
-                        <span style="margin-right: 15px;">📅 날짜: <b>{data.get('details', {}).get('date')}</b></span>
-                        <span>🎒 준비물: <b>{", ".join(data.get('details', {}).get('items', [])) if data.get('details', {}).get('items') else '없음'}</b></span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info("아직 분석된 통신문이 없습니다.")
-    except Exception:
-        st.error("데이터를 불러오는 중 오류가 발생했습니다.")
+                display_data = translate_content(file_obj['Body'].read().decode('utf-8'), st.session_state.language)
+                st.markdown(f'<div class="notice-card"><h4>📄 {display_data.get("title")}</h4><p>{display_data.get("summary")}</p><small>📅 {display_data.get("details", {}).get("date")}</small></div>', unsafe_allow_html=True)
+    except: st.error("Data Error")
 
-# --- [5] 메인 화면: AI 채팅 ---
+# --- [6] AI 채팅: 시맨틱 검색 최적화 ---
 elif st.session_state.current_page == 'chat':
-    st.title("💬 AI 도우미")
+    st.title("💬 AI School Assistant")
     for msg in st.session_state.messages:
-        role_class = "user-bubble" if msg["role"] == "user" else "assistant-bubble"
-        st.markdown(f'<div class="chat-bubble {role_class}">{msg["content"]}</div>', unsafe_allow_html=True)
+        with st.chat_message(msg["role"]): st.markdown(msg["content"])
 
-    if query := st.chat_input("궁금한 점을 물어보세요"):
+    if query := st.chat_input(curr_lang['chat_placeholder']):
         st.session_state.messages.append({"role": "user", "content": query})
+        with st.chat_message("user"): st.markdown(query)
+
         with st.chat_message("assistant"):
-            with st.status("분석 중...", expanded=False):
-                docs = find_relevant_docs(query, bedrock)
-                context_text = "\n\n".join(docs)
-            
-            prompt = f"School Buddy assistant. Language: {st.session_state.language}. Context: {context_text}"
-            llm = ChatBedrock(client=bedrock, model_id="anthropic.claude-3-haiku-20240307-v1:0")
-            response = llm.invoke([HumanMessage(content=prompt + f"\n\nQuestion: {query}")])
-            st.markdown(response.content)
-            st.session_state.messages.append({"role": "assistant", "content": response.content})
-            st.rerun()
+            with st.spinner("지식 베이스를 심층 분석하고 있습니다..."):
+                # 1. 질문 임베딩
+                embeddings_model = BedrockEmbeddings(client=bedrock, model_id="amazon.titan-embed-text-v1")
+                query_vector = embeddings_model.embed_query(query)
+                
+                # 2. 벡터 검색 강화 (Top-K = 15) 
+                conn = get_db_conn()
+                context_text = ""
+                if conn:
+                    cur = conn.cursor()
+                    # 15개의 문맥을 가져와서 이름 누락 방지 
+                    cur.execute("SELECT content FROM documents ORDER BY embedding <-> %s::vector LIMIT 15", (query_vector,))
+                    rows = cur.fetchall()
+                    # 검색 결과가 많을 때 LLM이 헷갈리지 않게 순서 정렬 
+                    context_text = "\n\n".join([f"공지 내용: {r[0]}" for r in rows])
+                    cur.close(); conn.close()
 
-# --- [6] 메인 화면: 용어 사전 ---
-elif st.session_state.current_page == 'dictionary':
-    st.title("📖 학교 용어 사전")
-    terms = {"가정통신문": "학교 알림", "스쿨뱅킹": "교육비 납부", "알림장": "준비물 체크", "방과후학교": "특별 수업", "실내화": "교내 신발"}
-    cols = st.columns(2)
-    for i, (term, desc) in enumerate(terms.items()):
-        with cols[i % 2]:
-            st.markdown(f"<div style='background:white; padding:1.2rem; border-radius:12px; border:1px solid #EEE; margin-bottom:1rem;'><h4 style='color:#FF9800; margin:0;'>📌 {term}</h4><p style='color:#333;'>{desc}</p></div>", unsafe_allow_html=True)
+                # 3. 답변 생성: 가이드라인 강화 
+                model = genai.GenerativeModel(MODEL_NAME)
+                prompt = f"""
+                당신은 학교 도우미입니다. 답변 언어는 {st.session_state.language}입니다.
+                아래 제공된 [공지사항] 내용에만 근거하여 질문에 답하세요. 
+                
+                **답변 가이드**:
+                1. 문서 내에 구체적인 앱 이름이나 소프트웨어 명칭이 '제목'이나 '본문'에 포함되어 있는지 철저히 확인하세요.
+                2. 질문에서 예시로 든 이름이 아닌, 실제 [공지사항] 텍스트 안에 존재하는 고유 명사를 답하세요.
+                3. 만약 공지사항에서 두 가지 주요 소프트웨어를 소개하고 있다면, 그 이름을 반드시 명시하세요.
+                
+                [공지사항]:
+                {context_text}
+                
+                질문: {query}
+                """
+                resp = model.generate_content(prompt)
+                st.markdown(resp.text)
+                st.session_state.messages.append({"role": "assistant", "content": resp.text})
 
-st.markdown("<br><hr><p style='text-align:center; color:#999; font-size:0.8rem;'>© 2026 School Buddy</p>", unsafe_allow_html=True)
+st.markdown("<br><hr><p style='text-align:center; color:#86868B; font-size:0.8rem;'>© 2026 School Buddy | Full RAG Integration</p>", unsafe_allow_html=True)
