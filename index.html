@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Buddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <h1>Project System Prompt: schoolbuddy</h1>
+
+    <h2>1. Project Overview</h2>
+    <ul>
+        <li><strong>Project Name:</strong> schoolbuddy (Intelligent Assistant for Multicultural Parents)</li>
+        <li><strong>Mission:</strong> To bridge the information gap and educational divide for multicultural families in Korea.</li>
+        <li><strong>Core Strategy:</strong> Go beyond "Simple Translation" to provide "Cultural Interpretation." We translate Korean school culture into the parents' native languages to help children adapt smoothly to school life.</li>
+    </ul>
+
+    <h2>2. Tech Stack</h2>
+    <ul>
+        <li><strong>Backend:</strong> FastAPI (Python 3.10+)</li>
+        <li><strong>Frontend:</strong> React Native (Mobile App) / Next.js (Admin Dashboard)</li>
+        <li><strong>AI / LLM:</strong> Gemini API (Vision & Pro models)</li>
+        <li><strong>Orchestration:</strong> LangChain (LCEL)</li>
+        <li><strong>Database:</strong> PostgreSQL with <code>pgvector</code> extension</li>
+        <li><strong>Monitoring/Automation:</strong> Playwright (Python)</li>
+        <li><strong>Infrastructure:</strong> AWS Lambda (Triggers), Vercel (Hosting)</li>
+    </ul>
+
+    <h2>3. Core Functional Logic</h2>
+    <h3>A. School Monitoring Loop</h3>
+    <ul>
+        <li>Periodically crawl school websites using <strong>Playwright</strong>.</li>
+        <li>Detect new announcements by comparing Post IDs in the database.</li>
+        <li>Trigger an AWS Lambda function to process new images/PDFs via Gemini API.</li>
+    </ul>
+
+    <h3>B. Vision-based Context Analysis</h3>
+    <ul>
+        <li>Extract text from school newsletters (images/PDFs) using <strong>Gemini Vision</strong>.</li>
+        <li><strong>Data Normalization:</strong> Convert unstructured text into a structured JSON:
+    <pre><code>
+{
+    "title": "String",
+    "date": "YYYY-MM-DD",
+    "cultural_context": "What idioms are hard for foreign parents",
+    "main_text": "What should parents do"
+}
+    </code></pre>
+        </li>
+    </ul>
+
+    <h2>2. Detailed Service Workflow (User Journey)</h2>
+
+    <h3>Phase 1: School Registration & Setup</h3>
+    <ol>
+        <li><strong>User Input:</strong> The parent enters their child's school website URL in the app.</li>
+        <li><strong>System Action:</strong> The backend validates the URL, saves the school profile, and performs an initial scan of the website structure.</li>
+    </ol>
+
+    <h3>Phase 2: Automated Monitoring & Smart Summary</h3>
+    <ol>
+        <li><strong>Detection:</strong> The system monitors the school's "Announcements" board. When a new post is detected:
+            <ul>
+                <li>The system navigates to the post and identifies image files (JPEG/PNG) containing newsletters.</li>
+            </ul>
+        </li>
+        <li><strong>Analysis:</strong> <strong>Gemini Vision</strong> reads the image using a specialized prompt designed for multicultural parents.
+            <ul>
+                <li>It doesn't just translate; it simplifies terms and adds cultural context (e.g., explaining 'School Banking' or 'Emergency Contact').</li>
+            </ul>
+        </li>
+        <li><strong>Delivery:</strong>
+            <ul>
+                <li>The simplified, translated content is uploaded to the <strong>User Dashboard</strong>.</li>
+                <li>A <strong>Push Notification</strong> is sent to the parent: "A new announcement has been posted! Here is what you need to prepare."</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>Phase 3: On-demand Crawling & Dashboard Population</h3>
+    <ol>
+        <li><strong>Trigger:</strong> The user clicks the <strong>"Sync/Crawl"</strong> button on the dashboard.</li>
+        <li><strong>Action:</strong> The system crawls existing newsletters and various website tabs (e.g., School Meals, Academic Calendar).</li>
+        <li><strong>Result:</strong> All historical and tab-specific data are translated and categorized into organized tabs on the <strong>Dashboard</strong> for easy access.</li>
+    </ol>
+
+    <h2>3. Tech Stack & Integration</h2>
+    <ul>
+        <li><strong>Backend:</strong> FastAPI (Handling triggers and data processing).</li>
+        <li><strong>Automation:</strong> Playwright (Monitoring school boards and extracting JPEGs).</li>
+        <li><strong>Vision AI:</strong> Gemini Pro Vision (Text extraction + Cultural simplification).</li>
+        <li><strong>Push Service:</strong> Firebase Cloud Messaging (FCM) or similar for real-time alerts.</li>
+        <li><strong>Database:</strong> PostgreSQL (Storing school URLs, post IDs, and translated content).</li>
+    </ul>
+
+    <h2>4. Specific Prompting Instructions for Gemini</h2>
+    <ul>
+        <li>When summarizing newsletters, always include:
+            <ol>
+                <li><strong>Core Info:</strong> Title, Date, Location.</li>
+                <li><strong>Must-Haves:</strong> List of items the child needs to bring.</li>
+                <li><strong>Cultural Tip:</strong> A friendly explanation of the "why" behind the school activity.</li>
+                <li><strong>Ease of Language:</strong> Use 1st-grade level vocabulary for non-native speakers.</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h2>5. Coding Guidelines</h2>
+    <ul>
+        <li><strong>Scraper:</strong> Ensure Playwright can handle different school website layouts (Standardize selectors).</li>
+        <li><strong>Concurrency:</strong> Handle multiple school monitoring tasks efficiently using async Python.</li>
+        <li><strong>UI/UX:</strong> The dashboard should be tab-based (Announcements, Meals, Calendar, Guide).</li>
+    </ul>
+</body>
+</html>
