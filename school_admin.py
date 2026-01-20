@@ -14,7 +14,7 @@ from langchain_aws import BedrockEmbeddings
 load_dotenv()
 
 # --- 1. 서비스 초기화 (로직 유지) ---
-GENAI_API_KEY = "AIzaSyDb5XkJtwn9fsmMdY5CVeX76ke0wUh5cUc"
+GENAI_API_KEY = os.getenv('GENAI_API_KEY')
 genai.configure(api_key=GENAI_API_KEY)
 MODEL_NAME = 'models/gemini-2.5-flash'
 
