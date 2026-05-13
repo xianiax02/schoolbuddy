@@ -1,811 +1,128 @@
 <!DOCTYPE html>
-<html lang="ko">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SchoolBuddy - School Communication Assistant for Multicultural Families</title>
+    <title>School Buddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        .language-switcher {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border-radius: 50px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-            display: flex;
-            gap: 10px;
-        }
-
-        .lang-btn {
-            background: transparent;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            color: #ff6b35;
-        }
-
-        .lang-btn:hover {
-            background: #fff5f0;
-        }
-
-        .lang-btn.active {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: white;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            font-family: 'Nunito', sans-serif;
             line-height: 1.6;
-            color: #2d3748;
-            overflow-x: hidden;
+            margin: 20px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: white;
-            padding: 100px 20px 120px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 600px;
-            height: 600px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -5%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-            animation: float 8s ease-in-out infinite reverse;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-30px);
-            }
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-        }
-
-        .hero h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .hero p {
-            font-size: 1.4em;
-            margin-bottom: 40px;
-            opacity: 0.95;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: #1a1a1a;
-            color: white;
-            padding: 18px 50px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.2em;
-            transition: all 0.3s;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-            background: #2d2d2d;
-        }
-
-        /* Features Section */
-        .features {
-            padding: 80px 20px;
-            background: #f7fafc;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5em;
-            margin-bottom: 60px;
-            color: #2d3748;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-        }
-
-        .feature-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-        }
-
-        .feature-card h3 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-            color: #ff6b35;
-        }
-
-        .feature-card p {
-            color: #4a5568;
-            line-height: 1.8;
-        }
-
-        /* How it Works */
-        .how-it-works {
-            padding: 80px 20px;
-            background: white;
-        }
-
-        .steps {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            gap: 40px;
-            margin-top: 60px;
-        }
-
-        .step {
-            flex: 1;
-            min-width: 250px;
-            text-align: center;
-            position: relative;
-        }
-
-        .step-number {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            font-weight: bold;
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
-        }
-
-        .step h3 {
-            margin-bottom: 15px;
-            color: #2d3748;
-        }
-
-        .step p {
-            color: #4a5568;
-        }
-
-        /* Languages Section */
-        .languages {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-            color: white;
-            text-align: center;
-        }
-
-        .language-flags {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .flag-item {
-            font-size: 1.3em;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px 30px;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-        }
-
-        /* CTA Section */
-        .final-cta {
-            padding: 100px 20px;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white;
-            text-align: center;
-        }
-
-        .final-cta h2 {
-            font-size: 2.5em;
-            margin-bottom: 30px;
-        }
-
-        .final-cta p {
-            font-size: 1.3em;
-            margin-bottom: 40px;
-            opacity: 0.95;
-        }
-
-        .final-cta .cta-button {
-            background: #ff6b35;
-            color: white;
-        }
-
-        .final-cta .cta-button:hover {
-            background: #f7931e;
-        }
-
-        .fake-door-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(26, 26, 26, 0.72);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .fake-door-modal.open {
-            display: flex;
-        }
-
-        .fake-door-card {
-            background: white;
-            color: #2d3748;
-            width: min(100%, 460px);
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
-        }
-
-        .fake-door-card h2 {
-            color: #1a1a1a;
-            font-size: 1.8em;
-            margin-bottom: 12px;
-        }
-
-        .fake-door-card p {
-            color: #4a5568;
-            margin-bottom: 20px;
-        }
-
-        .waitlist-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .waitlist-form input {
-            flex: 1;
-            border: 1px solid #cbd5e0;
-            border-radius: 999px;
-            padding: 14px 18px;
-            font-size: 1em;
-            min-width: 0;
-        }
-
-        .waitlist-form button,
-        .modal-close {
-            border: none;
-            border-radius: 999px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .waitlist-form button {
-            background: #ff6b35;
-            color: white;
-            padding: 14px 20px;
-        }
-
-        .modal-close {
-            background: transparent;
-            color: #4a5568;
-            margin-top: 16px;
-            padding: 8px 0;
-        }
-
-        .waitlist-message {
-            display: none;
-            color: #2f855a;
-            font-weight: bold;
-            margin-top: 14px;
-        }
-
-        /* Footer */
-        footer {
-            background: #1a1a1a;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        footer p {
-            opacity: 0.8;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2em;
-            }
-
-            .hero p {
-                font-size: 1.1em;
-            }
-
-            .section-title {
-                font-size: 2em;
-            }
-
-            .waitlist-form {
-                flex-direction: column;
-            }
+        h1, h2, h3 {
+            font-weight: 700;
         }
     </style>
 </head>
-
 <body>
-    <!-- Language Switcher -->
-    <div class="language-switcher">
-        <button class="lang-btn active" onclick="changeLanguage('en', this)">EN</button>
-        <button class="lang-btn" onclick="changeLanguage('ko', this)">한국어</button>
-        <button class="lang-btn" onclick="changeLanguage('vi', this)">Tiếng Việt</button>
-        <button class="lang-btn" onclick="changeLanguage('zh', this)">中文</button>
-    </div>
+    <h1>Project System Prompt: schoolbuddy</h1>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content container">
-            <div class="logo">
-                <div class="logo-icon">👨‍👩‍👧‍👦</div>
-                <span>SchoolBuddy</span>
-            </div>
-            <h1 data-i18n="hero.title">Don't Worry About<br>Your Child's School Life</h1>
-            <p data-i18n="hero.subtitle">Your Smart School Newsletter Interpreter for Multicultural Families</p>
-            <a href="#waitlist" class="cta-button fake-door-trigger" data-i18n="hero.cta">Start Free</a>
-        </div>
-    </section>
+    <h2>1. Project Overview</h2>
+    <ul>
+        <li><strong>Project Name:</strong> schoolbuddy (Intelligent Assistant for Multicultural Parents)</li>
+        <li><strong>Mission:</strong> To bridge the information gap and educational divide for multicultural families in Korea.</li>
+        <li><strong>Core Strategy:</strong> Go beyond "Simple Translation" to provide "Cultural Interpretation." We translate Korean school culture into the parents' native languages to help children adapt smoothly to school life.</li>
+    </ul>
 
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <h2 class="section-title" data-i18n="features.title">Why SchoolBuddy is Special</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3 data-i18n="features.feature1.title">Auto Notifications</h3>
-                    <p data-i18n="features.feature1.desc">24/7 school website monitoring. Get instant alerts when new
-                        newsletters are posted.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🌏</div>
-                    <h3 data-i18n="features.feature2.title">Cultural Translation</h3>
-                    <p data-i18n="features.feature2.desc">Beyond simple translation - we explain Korean school culture.
-                        Learn what 'School Council' means and how to prepare for field trips.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3 data-i18n="features.feature3.title">Easy Dashboard</h3>
-                    <p data-i18n="features.feature3.desc">View meal plans, academic calendars, and supply lists at a
-                        glance. Everything organized by category.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3 data-i18n="features.feature4.title">AI Image Analysis</h3>
-                    <p data-i18n="features.feature4.desc">Image newsletters? No problem. Gemini AI reads and translates
-                        text from photos.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3 data-i18n="features.feature5.title">Simple Language</h3>
-                    <p data-i18n="features.feature5.desc">Explanations so simple a first-grader can understand. Say
-                        goodbye to complex educational jargon!</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">❤️</div>
-                    <h3 data-i18n="features.feature6.title">Free Service</h3>
-                    <p data-i18n="features.feature6.desc">Core features forever free so all multicultural families can
-                        access information equally.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    <h2>2. Tech Stack</h2>
+    <ul>
+        <li><strong>Backend:</strong> FastAPI (Python 3.10+)</li>
+        <li><strong>Frontend:</strong> React Native (Mobile App) / Next.js (Admin Dashboard)</li>
+        <li><strong>AI / LLM:</strong> Gemini API (Vision & Pro models)</li>
+        <li><strong>Orchestration:</strong> LangChain (LCEL)</li>
+        <li><strong>Database:</strong> PostgreSQL with <code>pgvector</code> extension</li>
+        <li><strong>Monitoring/Automation:</strong> Playwright (Python)</li>
+        <li><strong>Infrastructure:</strong> AWS Lambda (Triggers), Vercel (Hosting)</li>
+    </ul>
 
-    <!-- How it Works -->
-    <section class="how-it-works">
-        <div class="container">
-            <h2 class="section-title" data-i18n="howitworks.title">It's This Simple</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3 data-i18n="howitworks.step1.title">Register School</h3>
-                    <p data-i18n="howitworks.step1.desc">Just enter your child's school website URL</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3 data-i18n="howitworks.step2.title">Auto Monitoring</h3>
-                    <p data-i18n="howitworks.step2.desc">SchoolBuddy checks for updates daily</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3 data-i18n="howitworks.step3.title">Translate & Notify</h3>
-                    <p data-i18n="howitworks.step3.desc">New newsletters are translated and sent to your app</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3 data-i18n="howitworks.step4.title">All Set!</h3>
-                    <p data-i18n="howitworks.step4.desc">Now perfectly support your child's school life</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    <h2>3. Core Functional Logic</h2>
+    <h3>A. School Monitoring Loop</h3>
+    <ul>
+        <li>Periodically crawl school websites using <strong>Playwright</strong>.</li>
+        <li>Detect new announcements by comparing Post IDs in the database.</li>
+        <li>Trigger an AWS Lambda function to process new images/PDFs via Gemini API.</li>
+    </ul>
 
-    <!-- Languages Section -->
-    <section class="languages">
-        <div class="container">
-            <h2 class="section-title" data-i18n="languages.title">Multi-Language Support</h2>
-            <p data-i18n="languages.subtitle">Receive school updates in your native language</p>
-            <div class="language-flags">
-                <div class="flag-item">🇬🇧 English</div>
-                <div class="flag-item">🇰🇷 한국어</div>
-                <div class="flag-item">🇻🇳 Tiếng Việt</div>
-                <div class="flag-item">🇨🇳 中文</div>
-            </div>
-        </div>
-    </section>
+    <h3>B. Vision-based Context Analysis</h3>
+    <ul>
+        <li>Extract text from school newsletters (images/PDFs) using <strong>Gemini Vision</strong>.</li>
+        <li><strong>Data Normalization:</strong> Convert unstructured text into a structured JSON:
+    <pre><code>
+{
+    "title": "String",
+    "date": "YYYY-MM-DD",
+    "cultural_context": "What idioms are hard for foreign parents",
+    "main_text": "What should parents do"
+}
+    </code></pre>
+        </li>
+    </ul>
 
-    <!-- Final CTA -->
-    <section class="final-cta">
-        <div class="container">
-            <h2 data-i18n="finalcta.title">Start Now</h2>
-            <p data-i18n="finalcta.subtitle">SchoolBuddy is here with you<br>so your child won't be left behind at
-                school</p>
-            <a href="#waitlist" class="cta-button fake-door-trigger" data-i18n="finalcta.cta">Sign Up Free</a>
-        </div>
-    </section>
+    <h2>2. Detailed Service Workflow (User Journey)</h2>
 
-    <div class="fake-door-modal" id="waitlist-modal" aria-hidden="true">
-        <div class="fake-door-card" role="dialog" aria-modal="true" aria-labelledby="waitlist-title">
-            <h2 id="waitlist-title" data-i18n="waitlist.title">Early access is opening soon</h2>
-            <p data-i18n="waitlist.desc">Leave your email and we will invite you when SchoolBuddy launches.</p>
-            <form class="waitlist-form" id="waitlist-form">
-                <input type="email" id="waitlist-email" placeholder="parent@email.com" required>
-                <button type="submit" data-i18n="waitlist.submit">Join waitlist</button>
-            </form>
-            <div class="waitlist-message" id="waitlist-message" data-i18n="waitlist.thanks">Thanks. We saved your interest.</div>
-            <button type="button" class="modal-close" id="waitlist-close" data-i18n="waitlist.close">Close</button>
-        </div>
-    </div>
+    <h3>Phase 1: School Registration & Setup</h3>
+    <ol>
+        <li><strong>User Input:</strong> The parent enters their child's school website URL in the app.</li>
+        <li><strong>System Action:</strong> The backend validates the URL, saves the school profile, and performs an initial scan of the website structure.</li>
+    </ol>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p data-i18n="footer.copyright">&copy; 2026 SchoolBuddy. Every family has the right to equal access to
-                information.</p>
-            <p style="margin-top: 10px; font-size: 0.9em;">Contact: hello@schoolbuddy.com</p>
-        </div>
-    </footer>
+    <h3>Phase 2: Automated Monitoring & Smart Summary</h3>
+    <ol>
+        <li><strong>Detection:</strong> The system monitors the school's "Announcements" board. When a new post is detected:
+            <ul>
+                <li>The system navigates to the post and identifies image files (JPEG/PNG) containing newsletters.</li>
+            </ul>
+        </li>
+        <li><strong>Analysis:</strong> <strong>Gemini Vision</strong> reads the image using a specialized prompt designed for multicultural parents.
+            <ul>
+                <li>It doesn't just translate; it simplifies terms and adds cultural context (e.g., explaining 'School Banking' or 'Emergency Contact').</li>
+            </ul>
+        </li>
+        <li><strong>Delivery:</strong>
+            <ul>
+                <li>The simplified, translated content is uploaded to the <strong>User Dashboard</strong>.</li>
+                <li>A <strong>Push Notification</strong> is sent to the parent: "A new announcement has been posted! Here is what you need to prepare."</li>
+            </ul>
+        </li>
+    </ol>
 
-    <script>
-        const translations = {
-            en: {
-                'hero.title': "Don't Worry About<br>Your Child's School Life",
-                'hero.subtitle': "Your Smart School Newsletter Interpreter for Multicultural Families",
-                'hero.cta': "Start Free",
-                'features.title': "Why SchoolBuddy is Special",
-                'features.feature1.title': "Auto Notifications",
-                'features.feature1.desc': "24/7 school website monitoring. Get instant alerts when new newsletters are posted.",
-                'features.feature2.title': "Cultural Translation",
-                'features.feature2.desc': "Beyond simple translation - we explain Korean school culture. Learn what 'School Council' means and how to prepare for field trips.",
-                'features.feature3.title': "Easy Dashboard",
-                'features.feature3.desc': "View meal plans, academic calendars, and supply lists at a glance. Everything organized by category.",
-                'features.feature4.title': "AI Image Analysis",
-                'features.feature4.desc': "Image newsletters? No problem. Gemini AI reads and translates text from photos.",
-                'features.feature5.title': "Simple Language",
-                'features.feature5.desc': "Explanations so simple a first-grader can understand. Say goodbye to complex educational jargon!",
-                'features.feature6.title': "Free Service",
-                'features.feature6.desc': "Core features forever free so all multicultural families can access information equally.",
-                'howitworks.title': "It's This Simple",
-                'howitworks.step1.title': "Register School",
-                'howitworks.step1.desc': "Just enter your child's school website URL",
-                'howitworks.step2.title': "Auto Monitoring",
-                'howitworks.step2.desc': "SchoolBuddy checks for updates daily",
-                'howitworks.step3.title': "Translate & Notify",
-                'howitworks.step3.desc': "New newsletters are translated and sent to your app",
-                'howitworks.step4.title': "All Set!",
-                'howitworks.step4.desc': "Now perfectly support your child's school life",
-                'languages.title': "Multi-Language Support",
-                'languages.subtitle': "Receive school updates in your native language",
-                'finalcta.title': "Start Now",
-                'finalcta.subtitle': "SchoolBuddy is here with you<br>so your child won't be left behind at school",
-                'finalcta.cta': "Sign Up Free",
-                'waitlist.title': "Early access is opening soon",
-                'waitlist.desc': "Leave your email and we will invite you when SchoolBuddy launches.",
-                'waitlist.submit': "Join waitlist",
-                'waitlist.thanks': "Thanks. We saved your interest.",
-                'waitlist.close': "Close",
-                'footer.copyright': "&copy; 2026 SchoolBuddy. Every family has the right to equal access to information."
-            },
-            ko: {
-                'hero.title': "우리 아이 학교생활,<br>이제 걱정 마세요",
-                'hero.subtitle': "다문화 가정을 위한 똑똑한 학교 소식 통역사",
-                'hero.cta': "무료로 시작하기",
-                'features.title': "SchoolBuddy가 특별한 이유",
-                'features.feature1.title': "자동 알림",
-                'features.feature1.desc': "학교 홈페이지를 24시간 모니터링하여 새로운 가정통신문이 올라오면 즉시 알려드립니다.",
-                'features.feature2.title': "문화 번역",
-                'features.feature2.desc': "단순 번역이 아닌 한국 학교 문화를 쉽게 설명해드립니다. '학교운영위원회'가 무엇인지, '체험학습'은 어떻게 준비하는지 친절하게 안내합니다.",
-                'features.feature3.title': "간편한 대시보드",
-                'features.feature3.desc': "급식표, 학사일정, 준비물까지 한눈에 확인하세요. 놓치는 일이 없도록 카테고리별로 정리해드립니다.",
-                'features.feature4.title': "AI 이미지 분석",
-                'features.feature4.desc': "이미지로 된 가정통신문도 걱정없어요. Gemini AI가 사진 속 글자를 읽고 번역해드립니다.",
-                'features.feature5.title': "쉬운 언어",
-                'features.feature5.desc': "초등학교 1학년도 이해할 수 있는 쉬운 단어로 설명합니다. 어려운 교육용어는 이제 안녕!",
-                'features.feature6.title': "무료 서비스",
-                'features.feature6.desc': "모든 다문화 가정이 평등하게 정보를 받을 수 있도록 기본 기능은 영원히 무료입니다.",
-                'howitworks.title': "이렇게 간단합니다",
-                'howitworks.step1.title': "학교 등록",
-                'howitworks.step1.desc': "자녀가 다니는 학교 홈페이지 주소만 입력하세요",
-                'howitworks.step2.title': "자동 모니터링",
-                'howitworks.step2.desc': "SchoolBuddy가 매일 새 소식을 확인합니다",
-                'howitworks.step3.title': "번역 & 알림",
-                'howitworks.step3.desc': "새 가정통신문이 올라오면 번역해서 앱으로 알려드려요",
-                'howitworks.step4.title': "준비 완료!",
-                'howitworks.step4.desc': "이제 자녀의 학교생활을 완벽하게 지원하세요",
-                'languages.title': "다양한 언어 지원",
-                'languages.subtitle': "귀하의 모국어로 학교 소식을 받아보세요",
-                'finalcta.title': "지금 바로 시작하세요",
-                'finalcta.subtitle': "우리 아이가 학교에서 소외되지 않도록<br>SchoolBuddy가 함께합니다",
-                'finalcta.cta': "무료로 가입하기",
-                'waitlist.title': "곧 먼저 써볼 수 있어요",
-                'waitlist.desc': "이메일을 남기면 SchoolBuddy 출시 때 초대장을 보내드릴게요.",
-                'waitlist.submit': "대기자 등록",
-                'waitlist.thanks': "감사합니다. 관심 등록이 저장되었습니다.",
-                'waitlist.close': "닫기",
-                'footer.copyright': "&copy; 2026 SchoolBuddy. 모든 가족이 평등하게 정보를 받을 권리가 있습니다."
-            },
-            vi: {
-                'hero.title': "Đừng Lo Lắng Về<br>Cuộc Sống Học Đường Của Con",
-                'hero.subtitle': "Trợ Lý Thông Minh Phiên Dịch Thông Báo Trường Học Cho Gia Đình Đa Văn Hóa",
-                'hero.cta': "Bắt Đầu Miễn Phí",
-                'features.title': "Tại Sao SchoolBuddy Đặc Biệt",
-                'features.feature1.title': "Thông Báo Tự Động",
-                'features.feature1.desc': "Giám sát trang web trường học 24/7. Nhận thông báo ngay lập tức khi có thư thông báo mới.",
-                'features.feature2.title': "Dịch Văn Hóa",
-                'features.feature2.desc': "Không chỉ dịch đơn giản - chúng tôi giải thích văn hóa trường học Hàn Quốc. Tìm hiểu 'Hội đồng trường' là gì và cách chuẩn bị cho chuyến đi thực tế.",
-                'features.feature3.title': "Bảng Điều Khiển Dễ Dùng",
-                'features.feature3.desc': "Xem thực đơn bữa ăn, lịch học tập và danh sách đồ dùng trong nháy mắt. Mọi thứ được sắp xếp theo danh mục.",
-                'features.feature4.title': "Phân Tích Hình Ảnh AI",
-                'features.feature4.desc': "Thông báo bằng hình ảnh? Không vấn đề gì. Gemini AI đọc và dịch văn bản từ ảnh.",
-                'features.feature5.title': "Ngôn Ngữ Đơn Giản",
-                'features.feature5.desc': "Giải thích đơn giản đến mức học sinh lớp một có thể hiểu. Tạm biệt thuật ngữ giáo dục phức tạp!",
-                'features.feature6.title': "Dịch Vụ Miễn Phí",
-                'features.feature6.desc': "Các tính năng cốt lõi miễn phí vĩnh viễn để tất cả gia đình đa văn hóa có thể tiếp cận thông tin công bằng.",
-                'howitworks.title': "Đơn Giản Như Thế Này",
-                'howitworks.step1.title': "Đăng Ký Trường",
-                'howitworks.step1.desc': "Chỉ cần nhập URL trang web trường học của con bạn",
-                'howitworks.step2.title': "Giám Sát Tự Động",
-                'howitworks.step2.desc': "SchoolBuddy kiểm tra cập nhật hàng ngày",
-                'howitworks.step3.title': "Dịch & Thông Báo",
-                'howitworks.step3.desc': "Thông báo mới được dịch và gửi đến ứng dụng của bạn",
-                'howitworks.step4.title': "Hoàn Tất!",
-                'howitworks.step4.desc': "Bây giờ hãy hỗ trợ hoàn hảo cuộc sống học đường của con",
-                'languages.title': "Hỗ Trợ Đa Ngôn Ngữ",
-                'languages.subtitle': "Nhận thông tin trường học bằng ngôn ngữ mẹ đẻ của bạn",
-                'finalcta.title': "Bắt Đầu Ngay",
-                'finalcta.subtitle': "SchoolBuddy luôn ở bên bạn<br>để con bạn không bị bỏ lại phía sau ở trường",
-                'finalcta.cta': "Đăng Ký Miễn Phí",
-                'waitlist.title': "Quyền truy cập sớm sắp mở",
-                'waitlist.desc': "Để lại email và chúng tôi sẽ mời bạn khi SchoolBuddy ra mắt.",
-                'waitlist.submit': "Tham gia danh sách",
-                'waitlist.thanks': "Cảm ơn. Chúng tôi đã lưu sự quan tâm của bạn.",
-                'waitlist.close': "Đóng",
-                'footer.copyright': "&copy; 2026 SchoolBuddy. Mọi gia đình đều có quyền tiếp cận thông tin công bằng."
-            },
-            zh: {
-                'hero.title': "不要担心<br>孩子的学校生活",
-                'hero.subtitle': "为多元文化家庭提供的智能学校通讯翻译助手",
-                'hero.cta': "免费开始",
-                'features.title': "SchoolBuddy的特别之处",
-                'features.feature1.title': "自动通知",
-                'features.feature1.desc': "全天候监控学校网站。有新通讯时立即收到提醒。",
-                'features.feature2.title': "文化翻译",
-                'features.feature2.desc': "不仅仅是简单翻译 - 我们解释韩国学校文化。了解'学校委员会'是什么以及如何准备实地考察。",
-                'features.feature3.title': "简易仪表板",
-                'features.feature3.desc': "一目了然地查看餐饮计划、学术日历和用品清单。所有内容按类别整理。",
-                'features.feature4.title': "AI图像分析",
-                'features.feature4.desc': "图片通讯？没问题。Gemini AI从照片中读取和翻译文本。",
-                'features.feature5.title': "简单语言",
-                'features.feature5.desc': "解释简单到一年级学生都能理解。告别复杂的教育术语！",
-                'features.feature6.title': "免费服务",
-                'features.feature6.desc': "核心功能永久免费，让所有多元文化家庭都能平等获取信息。",
-                'howitworks.title': "就是这么简单",
-                'howitworks.step1.title': "注册学校",
-                'howitworks.step1.desc': "只需输入孩子学校网站的网址",
-                'howitworks.step2.title': "自动监控",
-                'howitworks.step2.desc': "SchoolBuddy每天检查更新",
-                'howitworks.step3.title': "翻译和通知",
-                'howitworks.step3.desc': "新通讯被翻译并发送到您的应用程序",
-                'howitworks.step4.title': "一切就绪！",
-                'howitworks.step4.desc': "现在完美支持孩子的学校生活",
-                'languages.title': "多语言支持",
-                'languages.subtitle': "用您的母语接收学校更新",
-                'finalcta.title': "立即开始",
-                'finalcta.subtitle': "SchoolBuddy与您同在<br>让您的孩子不会在学校落后",
-                'finalcta.cta': "免费注册",
-                'waitlist.title': "抢先体验即将开放",
-                'waitlist.desc': "留下您的电子邮件，SchoolBuddy上线时我们会邀请您。",
-                'waitlist.submit': "加入候补名单",
-                'waitlist.thanks': "谢谢。我们已保存您的兴趣登记。",
-                'waitlist.close': "关闭",
-                'footer.copyright': "&copy; 2026 SchoolBuddy. 每个家庭都有平等获取信息的权利。"
-            }
-        };
+    <h3>Phase 3: On-demand Crawling & Dashboard Population</h3>
+    <ol>
+        <li><strong>Trigger:</strong> The user clicks the <strong>"Sync/Crawl"</strong> button on the dashboard.</li>
+        <li><strong>Action:</strong> The system crawls existing newsletters and various website tabs (e.g., School Meals, Academic Calendar).</li>
+        <li><strong>Result:</strong> All historical and tab-specific data are translated and categorized into organized tabs on the <strong>Dashboard</strong> for easy access.</li>
+    </ol>
 
-        const waitlistModal = document.getElementById('waitlist-modal');
-        const waitlistForm = document.getElementById('waitlist-form');
-        const waitlistEmail = document.getElementById('waitlist-email');
-        const waitlistMessage = document.getElementById('waitlist-message');
+    <h2>3. Tech Stack & Integration</h2>
+    <ul>
+        <li><strong>Backend:</strong> FastAPI (Handling triggers and data processing).</li>
+        <li><strong>Automation:</strong> Playwright (Monitoring school boards and extracting JPEGs).</li>
+        <li><strong>Vision AI:</strong> Gemini Pro Vision (Text extraction + Cultural simplification).</li>
+        <li><strong>Push Service:</strong> Firebase Cloud Messaging (FCM) or similar for real-time alerts.</li>
+        <li><strong>Database:</strong> PostgreSQL (Storing school URLs, post IDs, and translated content).</li>
+    </ul>
 
-        function recordFakeDoorEvent(eventName, payload = {}) {
-            const events = JSON.parse(localStorage.getItem('schoolbuddyFakeDoorEvents') || '[]');
-            events.push({
-                eventName,
-                payload,
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem('schoolbuddyFakeDoorEvents', JSON.stringify(events));
-        }
+    <h2>4. Specific Prompting Instructions for Gemini</h2>
+    <ul>
+        <li>When summarizing newsletters, always include:
+            <ol>
+                <li><strong>Core Info:</strong> Title, Date, Location.</li>
+                <li><strong>Must-Haves:</strong> List of items the child needs to bring.</li>
+                <li><strong>Cultural Tip:</strong> A friendly explanation of the "why" behind the school activity.</li>
+                <li><strong>Ease of Language:</strong> Use 1st-grade level vocabulary for non-native speakers.</li>
+            </ol>
+        </li>
+    </ul>
 
-        function openWaitlistModal() {
-            recordFakeDoorEvent('cta_click');
-            waitlistModal.classList.add('open');
-            waitlistModal.setAttribute('aria-hidden', 'false');
-            waitlistEmail.focus();
-        }
-
-        function closeWaitlistModal() {
-            waitlistModal.classList.remove('open');
-            waitlistModal.setAttribute('aria-hidden', 'true');
-        }
-
-        function changeLanguage(lang, clickedButton) {
-            const elements = document.querySelectorAll('[data-i18n]');
-            elements.forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translations[lang] && translations[lang][key]) {
-                    element.innerHTML = translations[lang][key];
-                }
-            });
-
-            // Update active button
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            if (clickedButton) {
-                clickedButton.classList.add('active');
-            }
-
-            // Save language preference
-            localStorage.setItem('preferredLanguage', lang);
-        }
-
-        // Load saved language on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedLang = localStorage.getItem('preferredLanguage') || 'en';
-
-            // Apply translations
-            const elements = document.querySelectorAll('[data-i18n]');
-            elements.forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translations[savedLang] && translations[savedLang][key]) {
-                    element.innerHTML = translations[savedLang][key];
-                }
-            });
-
-            // Update active button
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.getAttribute('onclick').includes(`'${savedLang}'`)) {
-                    btn.classList.add('active');
-                }
-            });
-        });
-
-        document.querySelectorAll('.fake-door-trigger').forEach(trigger => {
-            trigger.addEventListener('click', event => {
-                event.preventDefault();
-                openWaitlistModal();
-            });
-        });
-
-        document.getElementById('waitlist-close').addEventListener('click', closeWaitlistModal);
-        waitlistModal.addEventListener('click', event => {
-            if (event.target === waitlistModal) {
-                closeWaitlistModal();
-            }
-        });
-
-        waitlistForm.addEventListener('submit', event => {
-            event.preventDefault();
-            recordFakeDoorEvent('waitlist_submit', {
-                email: waitlistEmail.value
-            });
-            waitlistMessage.style.display = 'block';
-            waitlistForm.reset();
-        });
-    </script>
-
+    <h2>5. Coding Guidelines</h2>
+    <ul>
+        <li><strong>Scraper:</strong> Ensure Playwright can handle different school website layouts (Standardize selectors).</li>
+        <li><strong>Concurrency:</strong> Handle multiple school monitoring tasks efficiently using async Python.</li>
+        <li><strong>UI/UX:</strong> The dashboard should be tab-based (Announcements, Meals, Calendar, Guide).</li>
+    </ul>
+</body>
 </html>
